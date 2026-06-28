@@ -6,14 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface OrderItem {
-  productId: number;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
+export interface DepartmentPrintConfigInput {
   /** @nullable */
   categoryId?: number | null;
   /** @nullable */
-  categoryName?: string | null;
+  printerName?: string | null;
+  copies?: number;
+  enabled?: boolean;
+  printOrder?: number;
 }

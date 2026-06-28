@@ -22,4 +22,16 @@ export interface SettingsInput {
   printQr?: boolean;
   showCashier?: boolean;
   showCustomer?: boolean;
+  receiptPaperSize?: string;
+  showOrderNumber?: boolean;
+  showTableNumber?: boolean;
+  showDateTime?: boolean;
+  showBarcode?: boolean;
+  showOrderType?: boolean;
+  showTax?: boolean;
+  showDiscount?: boolean;
+  showNotes?: boolean;
+  autoPrintTrigger?: string;
+  maxReprintCount?: number;
+  masterCopiesCount?: number;
 }

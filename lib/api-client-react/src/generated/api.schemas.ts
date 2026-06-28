@@ -120,6 +120,10 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   total: number;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  categoryName?: string | null;
 }
 
 export type OrderPaymentMethod = typeof OrderPaymentMethod[keyof typeof OrderPaymentMethod];
@@ -129,6 +133,15 @@ export const OrderPaymentMethod = {
   cash: 'cash',
   card: 'card',
   mixed: 'mixed',
+} as const;
+
+export type OrderOrderType = typeof OrderOrderType[keyof typeof OrderOrderType];
+
+
+export const OrderOrderType = {
+  'dine-in': 'dine-in',
+  takeout: 'takeout',
+  delivery: 'delivery',
 } as const;
 
 export interface Order {
@@ -151,6 +164,9 @@ export interface Order {
   userName?: string;
   /** @nullable */
   note?: string | null;
+  orderType?: OrderOrderType;
+  /** @nullable */
+  tableNumber?: string | null;
   createdAt: string;
   items?: OrderItem[];
 }
@@ -170,6 +186,15 @@ export const OrderInputPaymentMethod = {
   mixed: 'mixed',
 } as const;
 
+export type OrderInputOrderType = typeof OrderInputOrderType[keyof typeof OrderInputOrderType];
+
+
+export const OrderInputOrderType = {
+  'dine-in': 'dine-in',
+  takeout: 'takeout',
+  delivery: 'delivery',
+} as const;
+
 export interface OrderInput {
   items: OrderItemInput[];
   paymentMethod: OrderInputPaymentMethod;
@@ -186,6 +211,9 @@ export interface OrderInput {
   userId?: number;
   /** @nullable */
   note?: string | null;
+  orderType?: OrderInputOrderType;
+  /** @nullable */
+  tableNumber?: string | null;
 }
 
 export interface Customer {
@@ -250,6 +278,18 @@ export interface Settings {
   printQr?: boolean;
   showCashier?: boolean;
   showCustomer?: boolean;
+  receiptPaperSize?: string;
+  showOrderNumber?: boolean;
+  showTableNumber?: boolean;
+  showDateTime?: boolean;
+  showBarcode?: boolean;
+  showOrderType?: boolean;
+  showTax?: boolean;
+  showDiscount?: boolean;
+  showNotes?: boolean;
+  autoPrintTrigger?: string;
+  maxReprintCount?: number;
+  masterCopiesCount?: number;
 }
 
 export interface SettingsInput {
@@ -268,6 +308,18 @@ export interface SettingsInput {
   printQr?: boolean;
   showCashier?: boolean;
   showCustomer?: boolean;
+  receiptPaperSize?: string;
+  showOrderNumber?: boolean;
+  showTableNumber?: boolean;
+  showDateTime?: boolean;
+  showBarcode?: boolean;
+  showOrderType?: boolean;
+  showTax?: boolean;
+  showDiscount?: boolean;
+  showNotes?: boolean;
+  autoPrintTrigger?: string;
+  maxReprintCount?: number;
+  masterCopiesCount?: number;
 }
 
 export interface SalesReportRow {
@@ -275,6 +327,93 @@ export interface SalesReportRow {
   total: number;
   orders: number;
   profit: number;
+}
+
+export interface ReceiptCopyConfig {
+  id: number;
+  copyNumber: number;
+  label: string;
+  enabled: boolean;
+}
+
+export interface ReceiptCopyConfigInput {
+  copyNumber: number;
+  label: string;
+  enabled?: boolean;
+}
+
+export interface DepartmentPrintConfig {
+  id: number;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  printerName?: string | null;
+  copies: number;
+  enabled: boolean;
+  printOrder: number;
+}
+
+export interface DepartmentPrintConfigInput {
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  printerName?: string | null;
+  copies?: number;
+  enabled?: boolean;
+  printOrder?: number;
+}
+
+export type PrintLogStatus = typeof PrintLogStatus[keyof typeof PrintLogStatus];
+
+
+export const PrintLogStatus = {
+  success: 'success',
+  failed: 'failed',
+} as const;
+
+export interface PrintLog {
+  id: number;
+  orderId: number;
+  invoiceNumber: string;
+  receiptType: string;
+  /** @nullable */
+  departmentName?: string | null;
+  /** @nullable */
+  printerName?: string | null;
+  printedAt: string;
+  userId: number;
+  /** @nullable */
+  userName?: string | null;
+  copies: number;
+  status: PrintLogStatus;
+  /** @nullable */
+  reprintReason?: string | null;
+  reprintCount: number;
+}
+
+export type PrintLogInputStatus = typeof PrintLogInputStatus[keyof typeof PrintLogInputStatus];
+
+
+export const PrintLogInputStatus = {
+  success: 'success',
+  failed: 'failed',
+} as const;
+
+export interface PrintLogInput {
+  orderId: number;
+  invoiceNumber: string;
+  receiptType: string;
+  /** @nullable */
+  departmentName?: string | null;
+  /** @nullable */
+  printerName?: string | null;
+  copies?: number;
+  status?: PrintLogInputStatus;
+  /** @nullable */
+  reprintReason?: string | null;
+  reprintCount?: number;
 }
 
 export type GetProductsParams = {
@@ -286,7 +425,17 @@ export type GetOrdersParams = {
 startDate?: string;
 endDate?: string;
 userId?: number;
+orderType?: GetOrdersOrderType;
 };
+
+export type GetOrdersOrderType = typeof GetOrdersOrderType[keyof typeof GetOrdersOrderType];
+
+
+export const GetOrdersOrderType = {
+  'dine-in': 'dine-in',
+  takeout: 'takeout',
+  delivery: 'delivery',
+} as const;
 
 export type GetSalesReportParams = {
 startDate?: string;
@@ -302,4 +451,14 @@ export const GetSalesReportGroupBy = {
   month: 'month',
   year: 'year',
 } as const;
+
+export type GetPrintLogsParams = {
+orderId?: number;
+startDate?: string;
+endDate?: string;
+};
+
+export type GetReprintCount200 = {
+  reprintCount: number;
+};
 

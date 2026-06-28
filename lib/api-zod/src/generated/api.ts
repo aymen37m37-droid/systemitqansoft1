@@ -229,7 +229,8 @@ export const DeleteProductResponse = zod.void()
 export const GetOrdersQueryParams = zod.object({
   "startDate": zod.coerce.string().optional(),
   "endDate": zod.coerce.string().optional(),
-  "userId": zod.coerce.number().optional()
+  "userId": zod.coerce.number().optional(),
+  "orderType": zod.enum(['dine-in', 'takeout', 'delivery']).optional()
 })
 
 export const GetOrdersResponseItem = zod.object({
@@ -247,13 +248,17 @@ export const GetOrdersResponseItem = zod.object({
   "userId": zod.number().optional(),
   "userName": zod.string().optional(),
   "note": zod.string().nullish(),
+  "orderType": zod.enum(['dine-in', 'takeout', 'delivery']).optional(),
+  "tableNumber": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
   "productId": zod.number(),
   "productName": zod.string(),
   "quantity": zod.number(),
   "unitPrice": zod.number(),
-  "total": zod.number()
+  "total": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish()
 })).optional()
 })
 export const GetOrdersResponse = zod.array(GetOrdersResponseItem)
@@ -277,7 +282,9 @@ export const CreateOrderBody = zod.object({
   "cardAmount": zod.number().nullish(),
   "customerId": zod.number().nullish(),
   "userId": zod.number().optional(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish(),
+  "orderType": zod.enum(['dine-in', 'takeout', 'delivery']).optional(),
+  "tableNumber": zod.string().nullish()
 })
 
 export const CreateOrderResponse = zod.object({
@@ -295,13 +302,17 @@ export const CreateOrderResponse = zod.object({
   "userId": zod.number().optional(),
   "userName": zod.string().optional(),
   "note": zod.string().nullish(),
+  "orderType": zod.enum(['dine-in', 'takeout', 'delivery']).optional(),
+  "tableNumber": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
   "productId": zod.number(),
   "productName": zod.string(),
   "quantity": zod.number(),
   "unitPrice": zod.number(),
-  "total": zod.number()
+  "total": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish()
 })).optional()
 })
 
@@ -328,13 +339,17 @@ export const GetOrderResponse = zod.object({
   "userId": zod.number().optional(),
   "userName": zod.string().optional(),
   "note": zod.string().nullish(),
+  "orderType": zod.enum(['dine-in', 'takeout', 'delivery']).optional(),
+  "tableNumber": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
   "productId": zod.number(),
   "productName": zod.string(),
   "quantity": zod.number(),
   "unitPrice": zod.number(),
-  "total": zod.number()
+  "total": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish()
 })).optional()
 })
 
@@ -538,7 +553,19 @@ export const GetSettingsResponse = zod.object({
   "printLogo": zod.boolean().optional(),
   "printQr": zod.boolean().optional(),
   "showCashier": zod.boolean().optional(),
-  "showCustomer": zod.boolean().optional()
+  "showCustomer": zod.boolean().optional(),
+  "receiptPaperSize": zod.string().optional(),
+  "showOrderNumber": zod.boolean().optional(),
+  "showTableNumber": zod.boolean().optional(),
+  "showDateTime": zod.boolean().optional(),
+  "showBarcode": zod.boolean().optional(),
+  "showOrderType": zod.boolean().optional(),
+  "showTax": zod.boolean().optional(),
+  "showDiscount": zod.boolean().optional(),
+  "showNotes": zod.boolean().optional(),
+  "autoPrintTrigger": zod.string().optional(),
+  "maxReprintCount": zod.number().optional(),
+  "masterCopiesCount": zod.number().optional()
 })
 
 
@@ -556,7 +583,19 @@ export const UpdateSettingsBody = zod.object({
   "printLogo": zod.boolean().optional(),
   "printQr": zod.boolean().optional(),
   "showCashier": zod.boolean().optional(),
-  "showCustomer": zod.boolean().optional()
+  "showCustomer": zod.boolean().optional(),
+  "receiptPaperSize": zod.string().optional(),
+  "showOrderNumber": zod.boolean().optional(),
+  "showTableNumber": zod.boolean().optional(),
+  "showDateTime": zod.boolean().optional(),
+  "showBarcode": zod.boolean().optional(),
+  "showOrderType": zod.boolean().optional(),
+  "showTax": zod.boolean().optional(),
+  "showDiscount": zod.boolean().optional(),
+  "showNotes": zod.boolean().optional(),
+  "autoPrintTrigger": zod.string().optional(),
+  "maxReprintCount": zod.number().optional(),
+  "masterCopiesCount": zod.number().optional()
 })
 
 export const UpdateSettingsResponse = zod.object({
@@ -570,7 +609,19 @@ export const UpdateSettingsResponse = zod.object({
   "printLogo": zod.boolean().optional(),
   "printQr": zod.boolean().optional(),
   "showCashier": zod.boolean().optional(),
-  "showCustomer": zod.boolean().optional()
+  "showCustomer": zod.boolean().optional(),
+  "receiptPaperSize": zod.string().optional(),
+  "showOrderNumber": zod.boolean().optional(),
+  "showTableNumber": zod.boolean().optional(),
+  "showDateTime": zod.boolean().optional(),
+  "showBarcode": zod.boolean().optional(),
+  "showOrderType": zod.boolean().optional(),
+  "showTax": zod.boolean().optional(),
+  "showDiscount": zod.boolean().optional(),
+  "showNotes": zod.boolean().optional(),
+  "autoPrintTrigger": zod.string().optional(),
+  "maxReprintCount": zod.number().optional(),
+  "masterCopiesCount": zod.number().optional()
 })
 
 
@@ -590,5 +641,209 @@ export const GetSalesReportResponseItem = zod.object({
   "profit": zod.number()
 })
 export const GetSalesReportResponse = zod.array(GetSalesReportResponseItem)
+
+
+/**
+ * @summary List receipt copy configs
+ */
+export const GetReceiptCopyConfigsResponseItem = zod.object({
+  "id": zod.number(),
+  "copyNumber": zod.number(),
+  "label": zod.string(),
+  "enabled": zod.boolean()
+})
+export const GetReceiptCopyConfigsResponse = zod.array(GetReceiptCopyConfigsResponseItem)
+
+
+/**
+ * @summary Create receipt copy config
+ */
+export const CreateReceiptCopyConfigBody = zod.object({
+  "copyNumber": zod.number(),
+  "label": zod.string(),
+  "enabled": zod.boolean().optional()
+})
+
+export const CreateReceiptCopyConfigResponse = zod.object({
+  "id": zod.number(),
+  "copyNumber": zod.number(),
+  "label": zod.string(),
+  "enabled": zod.boolean()
+})
+
+
+/**
+ * @summary Update receipt copy config
+ */
+export const UpdateReceiptCopyConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateReceiptCopyConfigBody = zod.object({
+  "copyNumber": zod.number(),
+  "label": zod.string(),
+  "enabled": zod.boolean().optional()
+})
+
+export const UpdateReceiptCopyConfigResponse = zod.object({
+  "id": zod.number(),
+  "copyNumber": zod.number(),
+  "label": zod.string(),
+  "enabled": zod.boolean()
+})
+
+
+/**
+ * @summary Delete receipt copy config
+ */
+export const DeleteReceiptCopyConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteReceiptCopyConfigResponse = zod.void()
+
+
+/**
+ * @summary List department print configs
+ */
+export const GetDepartmentPrintConfigsResponseItem = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "printerName": zod.string().nullish(),
+  "copies": zod.number(),
+  "enabled": zod.boolean(),
+  "printOrder": zod.number()
+})
+export const GetDepartmentPrintConfigsResponse = zod.array(GetDepartmentPrintConfigsResponseItem)
+
+
+/**
+ * @summary Create department print config
+ */
+export const CreateDepartmentPrintConfigBody = zod.object({
+  "categoryId": zod.number().nullish(),
+  "printerName": zod.string().nullish(),
+  "copies": zod.number().optional(),
+  "enabled": zod.boolean().optional(),
+  "printOrder": zod.number().optional()
+})
+
+export const CreateDepartmentPrintConfigResponse = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "printerName": zod.string().nullish(),
+  "copies": zod.number(),
+  "enabled": zod.boolean(),
+  "printOrder": zod.number()
+})
+
+
+/**
+ * @summary Update department print config
+ */
+export const UpdateDepartmentPrintConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateDepartmentPrintConfigBody = zod.object({
+  "categoryId": zod.number().nullish(),
+  "printerName": zod.string().nullish(),
+  "copies": zod.number().optional(),
+  "enabled": zod.boolean().optional(),
+  "printOrder": zod.number().optional()
+})
+
+export const UpdateDepartmentPrintConfigResponse = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "printerName": zod.string().nullish(),
+  "copies": zod.number(),
+  "enabled": zod.boolean(),
+  "printOrder": zod.number()
+})
+
+
+/**
+ * @summary Delete department print config
+ */
+export const DeleteDepartmentPrintConfigParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteDepartmentPrintConfigResponse = zod.void()
+
+
+/**
+ * @summary List print logs
+ */
+export const GetPrintLogsQueryParams = zod.object({
+  "orderId": zod.coerce.number().optional(),
+  "startDate": zod.coerce.string().optional(),
+  "endDate": zod.coerce.string().optional()
+})
+
+export const GetPrintLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "invoiceNumber": zod.string(),
+  "receiptType": zod.string(),
+  "departmentName": zod.string().nullish(),
+  "printerName": zod.string().nullish(),
+  "printedAt": zod.string(),
+  "userId": zod.number(),
+  "userName": zod.string().nullish(),
+  "copies": zod.number(),
+  "status": zod.enum(['success', 'failed']),
+  "reprintReason": zod.string().nullish(),
+  "reprintCount": zod.number()
+})
+export const GetPrintLogsResponse = zod.array(GetPrintLogsResponseItem)
+
+
+/**
+ * @summary Create print log entry
+ */
+export const CreatePrintLogBody = zod.object({
+  "orderId": zod.number(),
+  "invoiceNumber": zod.string(),
+  "receiptType": zod.string(),
+  "departmentName": zod.string().nullish(),
+  "printerName": zod.string().nullish(),
+  "copies": zod.number().optional(),
+  "status": zod.enum(['success', 'failed']).optional(),
+  "reprintReason": zod.string().nullish(),
+  "reprintCount": zod.number().optional()
+})
+
+export const CreatePrintLogResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "invoiceNumber": zod.string(),
+  "receiptType": zod.string(),
+  "departmentName": zod.string().nullish(),
+  "printerName": zod.string().nullish(),
+  "printedAt": zod.string(),
+  "userId": zod.number(),
+  "userName": zod.string().nullish(),
+  "copies": zod.number(),
+  "status": zod.enum(['success', 'failed']),
+  "reprintReason": zod.string().nullish(),
+  "reprintCount": zod.number()
+})
+
+
+/**
+ * @summary Get reprint count for an order
+ */
+export const GetReprintCountParams = zod.object({
+  "orderId": zod.coerce.number()
+})
+
+export const GetReprintCountResponse = zod.object({
+  "reprintCount": zod.number()
+})
 
 

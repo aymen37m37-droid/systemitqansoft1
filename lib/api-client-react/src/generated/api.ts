@@ -26,15 +26,23 @@ import type {
   Customer,
   CustomerInput,
   DashboardSummary,
+  DepartmentPrintConfig,
+  DepartmentPrintConfigInput,
   GetOrdersParams,
+  GetPrintLogsParams,
   GetProductsParams,
+  GetReprintCount200,
   GetSalesReportParams,
   HealthStatus,
   LoginInput,
   Order,
   OrderInput,
+  PrintLog,
+  PrintLogInput,
   Product,
   ProductInput,
+  ReceiptCopyConfig,
+  ReceiptCopyConfigInput,
   SalesByHour,
   SalesReportRow,
   Settings,
@@ -2353,6 +2361,813 @@ export function useGetSalesReport<TData = Awaited<ReturnType<typeof getSalesRepo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetSalesReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetReceiptCopyConfigsUrl = () => {
+
+
+
+
+  return `/api/print-config/receipt-copies`
+}
+
+/**
+ * @summary List receipt copy configs
+ */
+export const getReceiptCopyConfigs = async ( options?: RequestInit): Promise<ReceiptCopyConfig[]> => {
+
+  return customFetch<ReceiptCopyConfig[]>(getGetReceiptCopyConfigsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReceiptCopyConfigsQueryKey = () => {
+    return [
+    `/api/print-config/receipt-copies`
+    ] as const;
+    }
+
+
+export const getGetReceiptCopyConfigsQueryOptions = <TData = Awaited<ReturnType<typeof getReceiptCopyConfigs>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReceiptCopyConfigs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReceiptCopyConfigsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReceiptCopyConfigs>>> = ({ signal }) => getReceiptCopyConfigs({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReceiptCopyConfigs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReceiptCopyConfigsQueryResult = NonNullable<Awaited<ReturnType<typeof getReceiptCopyConfigs>>>
+export type GetReceiptCopyConfigsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List receipt copy configs
+ */
+
+export function useGetReceiptCopyConfigs<TData = Awaited<ReturnType<typeof getReceiptCopyConfigs>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReceiptCopyConfigs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReceiptCopyConfigsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateReceiptCopyConfigUrl = () => {
+
+
+
+
+  return `/api/print-config/receipt-copies`
+}
+
+/**
+ * @summary Create receipt copy config
+ */
+export const createReceiptCopyConfig = async (receiptCopyConfigInput: ReceiptCopyConfigInput, options?: RequestInit): Promise<ReceiptCopyConfig> => {
+
+  return customFetch<ReceiptCopyConfig>(getCreateReceiptCopyConfigUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(receiptCopyConfigInput)
+  }
+);}
+
+
+
+
+export const getCreateReceiptCopyConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReceiptCopyConfig>>, TError,{data: BodyType<ReceiptCopyConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReceiptCopyConfig>>, TError,{data: BodyType<ReceiptCopyConfigInput>}, TContext> => {
+
+const mutationKey = ['createReceiptCopyConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReceiptCopyConfig>>, {data: BodyType<ReceiptCopyConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createReceiptCopyConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReceiptCopyConfigMutationResult = NonNullable<Awaited<ReturnType<typeof createReceiptCopyConfig>>>
+    export type CreateReceiptCopyConfigMutationBody = BodyType<ReceiptCopyConfigInput>
+    export type CreateReceiptCopyConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create receipt copy config
+ */
+export const useCreateReceiptCopyConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReceiptCopyConfig>>, TError,{data: BodyType<ReceiptCopyConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createReceiptCopyConfig>>,
+        TError,
+        {data: BodyType<ReceiptCopyConfigInput>},
+        TContext
+      > => {
+      return useMutation(getCreateReceiptCopyConfigMutationOptions(options));
+    }
+
+export const getUpdateReceiptCopyConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/print-config/receipt-copies/${id}`
+}
+
+/**
+ * @summary Update receipt copy config
+ */
+export const updateReceiptCopyConfig = async (id: number,
+    receiptCopyConfigInput: ReceiptCopyConfigInput, options?: RequestInit): Promise<ReceiptCopyConfig> => {
+
+  return customFetch<ReceiptCopyConfig>(getUpdateReceiptCopyConfigUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(receiptCopyConfigInput)
+  }
+);}
+
+
+
+
+export const getUpdateReceiptCopyConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReceiptCopyConfig>>, TError,{id: number;data: BodyType<ReceiptCopyConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateReceiptCopyConfig>>, TError,{id: number;data: BodyType<ReceiptCopyConfigInput>}, TContext> => {
+
+const mutationKey = ['updateReceiptCopyConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateReceiptCopyConfig>>, {id: number;data: BodyType<ReceiptCopyConfigInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateReceiptCopyConfig(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateReceiptCopyConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updateReceiptCopyConfig>>>
+    export type UpdateReceiptCopyConfigMutationBody = BodyType<ReceiptCopyConfigInput>
+    export type UpdateReceiptCopyConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update receipt copy config
+ */
+export const useUpdateReceiptCopyConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReceiptCopyConfig>>, TError,{id: number;data: BodyType<ReceiptCopyConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateReceiptCopyConfig>>,
+        TError,
+        {id: number;data: BodyType<ReceiptCopyConfigInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateReceiptCopyConfigMutationOptions(options));
+    }
+
+export const getDeleteReceiptCopyConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/print-config/receipt-copies/${id}`
+}
+
+/**
+ * @summary Delete receipt copy config
+ */
+export const deleteReceiptCopyConfig = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteReceiptCopyConfigUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteReceiptCopyConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReceiptCopyConfig>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteReceiptCopyConfig>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteReceiptCopyConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReceiptCopyConfig>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteReceiptCopyConfig(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteReceiptCopyConfigMutationResult = NonNullable<Awaited<ReturnType<typeof deleteReceiptCopyConfig>>>
+
+    export type DeleteReceiptCopyConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete receipt copy config
+ */
+export const useDeleteReceiptCopyConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReceiptCopyConfig>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteReceiptCopyConfig>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteReceiptCopyConfigMutationOptions(options));
+    }
+
+export const getGetDepartmentPrintConfigsUrl = () => {
+
+
+
+
+  return `/api/print-config/departments`
+}
+
+/**
+ * @summary List department print configs
+ */
+export const getDepartmentPrintConfigs = async ( options?: RequestInit): Promise<DepartmentPrintConfig[]> => {
+
+  return customFetch<DepartmentPrintConfig[]>(getGetDepartmentPrintConfigsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDepartmentPrintConfigsQueryKey = () => {
+    return [
+    `/api/print-config/departments`
+    ] as const;
+    }
+
+
+export const getGetDepartmentPrintConfigsQueryOptions = <TData = Awaited<ReturnType<typeof getDepartmentPrintConfigs>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDepartmentPrintConfigs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDepartmentPrintConfigsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDepartmentPrintConfigs>>> = ({ signal }) => getDepartmentPrintConfigs({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDepartmentPrintConfigs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDepartmentPrintConfigsQueryResult = NonNullable<Awaited<ReturnType<typeof getDepartmentPrintConfigs>>>
+export type GetDepartmentPrintConfigsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List department print configs
+ */
+
+export function useGetDepartmentPrintConfigs<TData = Awaited<ReturnType<typeof getDepartmentPrintConfigs>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDepartmentPrintConfigs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDepartmentPrintConfigsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateDepartmentPrintConfigUrl = () => {
+
+
+
+
+  return `/api/print-config/departments`
+}
+
+/**
+ * @summary Create department print config
+ */
+export const createDepartmentPrintConfig = async (departmentPrintConfigInput: DepartmentPrintConfigInput, options?: RequestInit): Promise<DepartmentPrintConfig> => {
+
+  return customFetch<DepartmentPrintConfig>(getCreateDepartmentPrintConfigUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(departmentPrintConfigInput)
+  }
+);}
+
+
+
+
+export const getCreateDepartmentPrintConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDepartmentPrintConfig>>, TError,{data: BodyType<DepartmentPrintConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDepartmentPrintConfig>>, TError,{data: BodyType<DepartmentPrintConfigInput>}, TContext> => {
+
+const mutationKey = ['createDepartmentPrintConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDepartmentPrintConfig>>, {data: BodyType<DepartmentPrintConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDepartmentPrintConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDepartmentPrintConfigMutationResult = NonNullable<Awaited<ReturnType<typeof createDepartmentPrintConfig>>>
+    export type CreateDepartmentPrintConfigMutationBody = BodyType<DepartmentPrintConfigInput>
+    export type CreateDepartmentPrintConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create department print config
+ */
+export const useCreateDepartmentPrintConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDepartmentPrintConfig>>, TError,{data: BodyType<DepartmentPrintConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDepartmentPrintConfig>>,
+        TError,
+        {data: BodyType<DepartmentPrintConfigInput>},
+        TContext
+      > => {
+      return useMutation(getCreateDepartmentPrintConfigMutationOptions(options));
+    }
+
+export const getUpdateDepartmentPrintConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/print-config/departments/${id}`
+}
+
+/**
+ * @summary Update department print config
+ */
+export const updateDepartmentPrintConfig = async (id: number,
+    departmentPrintConfigInput: DepartmentPrintConfigInput, options?: RequestInit): Promise<DepartmentPrintConfig> => {
+
+  return customFetch<DepartmentPrintConfig>(getUpdateDepartmentPrintConfigUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(departmentPrintConfigInput)
+  }
+);}
+
+
+
+
+export const getUpdateDepartmentPrintConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDepartmentPrintConfig>>, TError,{id: number;data: BodyType<DepartmentPrintConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDepartmentPrintConfig>>, TError,{id: number;data: BodyType<DepartmentPrintConfigInput>}, TContext> => {
+
+const mutationKey = ['updateDepartmentPrintConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDepartmentPrintConfig>>, {id: number;data: BodyType<DepartmentPrintConfigInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDepartmentPrintConfig(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDepartmentPrintConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updateDepartmentPrintConfig>>>
+    export type UpdateDepartmentPrintConfigMutationBody = BodyType<DepartmentPrintConfigInput>
+    export type UpdateDepartmentPrintConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update department print config
+ */
+export const useUpdateDepartmentPrintConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDepartmentPrintConfig>>, TError,{id: number;data: BodyType<DepartmentPrintConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDepartmentPrintConfig>>,
+        TError,
+        {id: number;data: BodyType<DepartmentPrintConfigInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateDepartmentPrintConfigMutationOptions(options));
+    }
+
+export const getDeleteDepartmentPrintConfigUrl = (id: number,) => {
+
+
+
+
+  return `/api/print-config/departments/${id}`
+}
+
+/**
+ * @summary Delete department print config
+ */
+export const deleteDepartmentPrintConfig = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteDepartmentPrintConfigUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteDepartmentPrintConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDepartmentPrintConfig>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDepartmentPrintConfig>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDepartmentPrintConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDepartmentPrintConfig>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDepartmentPrintConfig(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDepartmentPrintConfigMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDepartmentPrintConfig>>>
+
+    export type DeleteDepartmentPrintConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete department print config
+ */
+export const useDeleteDepartmentPrintConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDepartmentPrintConfig>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDepartmentPrintConfig>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDepartmentPrintConfigMutationOptions(options));
+    }
+
+export const getGetPrintLogsUrl = (params?: GetPrintLogsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/print-log?${stringifiedParams}` : `/api/print-log`
+}
+
+/**
+ * @summary List print logs
+ */
+export const getPrintLogs = async (params?: GetPrintLogsParams, options?: RequestInit): Promise<PrintLog[]> => {
+
+  return customFetch<PrintLog[]>(getGetPrintLogsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPrintLogsQueryKey = (params?: GetPrintLogsParams,) => {
+    return [
+    `/api/print-log`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPrintLogsQueryOptions = <TData = Awaited<ReturnType<typeof getPrintLogs>>, TError = ErrorType<unknown>>(params?: GetPrintLogsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPrintLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPrintLogsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPrintLogs>>> = ({ signal }) => getPrintLogs(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPrintLogs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPrintLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getPrintLogs>>>
+export type GetPrintLogsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List print logs
+ */
+
+export function useGetPrintLogs<TData = Awaited<ReturnType<typeof getPrintLogs>>, TError = ErrorType<unknown>>(
+ params?: GetPrintLogsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPrintLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPrintLogsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePrintLogUrl = () => {
+
+
+
+
+  return `/api/print-log`
+}
+
+/**
+ * @summary Create print log entry
+ */
+export const createPrintLog = async (printLogInput: PrintLogInput, options?: RequestInit): Promise<PrintLog> => {
+
+  return customFetch<PrintLog>(getCreatePrintLogUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(printLogInput)
+  }
+);}
+
+
+
+
+export const getCreatePrintLogMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrintLog>>, TError,{data: BodyType<PrintLogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPrintLog>>, TError,{data: BodyType<PrintLogInput>}, TContext> => {
+
+const mutationKey = ['createPrintLog'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPrintLog>>, {data: BodyType<PrintLogInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPrintLog(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePrintLogMutationResult = NonNullable<Awaited<ReturnType<typeof createPrintLog>>>
+    export type CreatePrintLogMutationBody = BodyType<PrintLogInput>
+    export type CreatePrintLogMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create print log entry
+ */
+export const useCreatePrintLog = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPrintLog>>, TError,{data: BodyType<PrintLogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPrintLog>>,
+        TError,
+        {data: BodyType<PrintLogInput>},
+        TContext
+      > => {
+      return useMutation(getCreatePrintLogMutationOptions(options));
+    }
+
+export const getGetReprintCountUrl = (orderId: number,) => {
+
+
+
+
+  return `/api/print-log/reprint-count/${orderId}`
+}
+
+/**
+ * @summary Get reprint count for an order
+ */
+export const getReprintCount = async (orderId: number, options?: RequestInit): Promise<GetReprintCount200> => {
+
+  return customFetch<GetReprintCount200>(getGetReprintCountUrl(orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReprintCountQueryKey = (orderId: number,) => {
+    return [
+    `/api/print-log/reprint-count/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetReprintCountQueryOptions = <TData = Awaited<ReturnType<typeof getReprintCount>>, TError = ErrorType<unknown>>(orderId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReprintCount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReprintCountQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReprintCount>>> = ({ signal }) => getReprintCount(orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orderId !== null && orderId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReprintCount>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReprintCountQueryResult = NonNullable<Awaited<ReturnType<typeof getReprintCount>>>
+export type GetReprintCountQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get reprint count for an order
+ */
+
+export function useGetReprintCount<TData = Awaited<ReturnType<typeof getReprintCount>>, TError = ErrorType<unknown>>(
+ orderId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReprintCount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReprintCountQueryOptions(orderId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

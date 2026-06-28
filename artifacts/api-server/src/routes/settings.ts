@@ -25,6 +25,20 @@ function getSettingsObj() {
     printQr: map["printQr"] ?? false,
     showCashier: map["showCashier"] ?? true,
     showCustomer: map["showCustomer"] ?? true,
+    // Receipt format
+    receiptPaperSize: map["receiptPaperSize"] ?? "80mm",
+    showOrderNumber: map["showOrderNumber"] ?? true,
+    showTableNumber: map["showTableNumber"] ?? true,
+    showDateTime: map["showDateTime"] ?? true,
+    showBarcode: map["showBarcode"] ?? false,
+    showOrderType: map["showOrderType"] ?? true,
+    showTax: map["showTax"] ?? true,
+    showDiscount: map["showDiscount"] ?? true,
+    showNotes: map["showNotes"] ?? true,
+    // Print behavior
+    autoPrintTrigger: map["autoPrintTrigger"] ?? "print_button",
+    maxReprintCount: map["maxReprintCount"] ?? 3,
+    masterCopiesCount: map["masterCopiesCount"] ?? 2,
   };
 }
 

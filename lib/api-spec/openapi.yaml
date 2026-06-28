@@ -17,6 +17,8 @@ tags:
   - name: dashboard
   - name: settings
   - name: reports
+  - name: printConfig
+  - name: printLog
 
 paths:
   /healthz:
@@ -261,6 +263,11 @@ paths:
           in: query
           schema:
             type: integer
+        - name: orderType
+          in: query
+          schema:
+            type: string
+            enum: [dine-in, takeout, delivery]
       responses:
         "200":
           description: OK
@@ -562,6 +569,214 @@ paths:
                 items:
                   $ref: "#/components/schemas/SalesReportRow"
 
+  /print-config/receipt-copies:
+    get:
+      operationId: getReceiptCopyConfigs
+      tags: [printConfig]
+      summary: List receipt copy configs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReceiptCopyConfig"
+    post:
+      operationId: createReceiptCopyConfig
+      tags: [printConfig]
+      summary: Create receipt copy config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceiptCopyConfigInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptCopyConfig"
+
+  /print-config/receipt-copies/{id}:
+    put:
+      operationId: updateReceiptCopyConfig
+      tags: [printConfig]
+      summary: Update receipt copy config
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceiptCopyConfigInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptCopyConfig"
+    delete:
+      operationId: deleteReceiptCopyConfig
+      tags: [printConfig]
+      summary: Delete receipt copy config
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /print-config/departments:
+    get:
+      operationId: getDepartmentPrintConfigs
+      tags: [printConfig]
+      summary: List department print configs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DepartmentPrintConfig"
+    post:
+      operationId: createDepartmentPrintConfig
+      tags: [printConfig]
+      summary: Create department print config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepartmentPrintConfigInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentPrintConfig"
+
+  /print-config/departments/{id}:
+    put:
+      operationId: updateDepartmentPrintConfig
+      tags: [printConfig]
+      summary: Update department print config
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepartmentPrintConfigInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentPrintConfig"
+    delete:
+      operationId: deleteDepartmentPrintConfig
+      tags: [printConfig]
+      summary: Delete department print config
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /print-log:
+    get:
+      operationId: getPrintLogs
+      tags: [printLog]
+      summary: List print logs
+      parameters:
+        - name: orderId
+          in: query
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrintLog"
+    post:
+      operationId: createPrintLog
+      tags: [printLog]
+      summary: Create print log entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrintLogInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrintLog"
+
+  /print-log/reprint-count/{orderId}:
+    get:
+      operationId: getReprintCount
+      tags: [printLog]
+      summary: Get reprint count for an order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reprintCount]
+                properties:
+                  reprintCount:
+                    type: integer
+
 components:
   schemas:
     HealthStatus:
@@ -716,6 +931,10 @@ components:
           type: number
         total:
           type: number
+        categoryId:
+          type: ["integer", "null"]
+        categoryName:
+          type: ["string", "null"]
 
     Order:
       type: object
@@ -749,6 +968,11 @@ components:
         userName:
           type: string
         note:
+          type: ["string", "null"]
+        orderType:
+          type: string
+          enum: [dine-in, takeout, delivery]
+        tableNumber:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -796,6 +1020,11 @@ components:
         userId:
           type: integer
         note:
+          type: ["string", "null"]
+        orderType:
+          type: string
+          enum: [dine-in, takeout, delivery]
+        tableNumber:
           type: ["string", "null"]
 
     Customer:
@@ -899,6 +1128,30 @@ components:
           type: boolean
         showCustomer:
           type: boolean
+        receiptPaperSize:
+          type: string
+        showOrderNumber:
+          type: boolean
+        showTableNumber:
+          type: boolean
+        showDateTime:
+          type: boolean
+        showBarcode:
+          type: boolean
+        showOrderType:
+          type: boolean
+        showTax:
+          type: boolean
+        showDiscount:
+          type: boolean
+        showNotes:
+          type: boolean
+        autoPrintTrigger:
+          type: string
+        maxReprintCount:
+          type: integer
+        masterCopiesCount:
+          type: integer
 
     SettingsInput:
       type: object
@@ -925,6 +1178,30 @@ components:
           type: boolean
         showCustomer:
           type: boolean
+        receiptPaperSize:
+          type: string
+        showOrderNumber:
+          type: boolean
+        showTableNumber:
+          type: boolean
+        showDateTime:
+          type: boolean
+        showBarcode:
+          type: boolean
+        showOrderType:
+          type: boolean
+        showTax:
+          type: boolean
+        showDiscount:
+          type: boolean
+        showNotes:
+          type: boolean
+        autoPrintTrigger:
+          type: string
+        maxReprintCount:
+          type: integer
+        masterCopiesCount:
+          type: integer
 
     SalesReportRow:
       type: object
@@ -938,3 +1215,116 @@ components:
           type: integer
         profit:
           type: number
+
+    ReceiptCopyConfig:
+      type: object
+      required: [id, copyNumber, label, enabled]
+      properties:
+        id:
+          type: integer
+        copyNumber:
+          type: integer
+        label:
+          type: string
+        enabled:
+          type: boolean
+
+    ReceiptCopyConfigInput:
+      type: object
+      required: [copyNumber, label]
+      properties:
+        copyNumber:
+          type: integer
+        label:
+          type: string
+        enabled:
+          type: boolean
+
+    DepartmentPrintConfig:
+      type: object
+      required: [id, copies, enabled, printOrder]
+      properties:
+        id:
+          type: integer
+        categoryId:
+          type: ["integer", "null"]
+        categoryName:
+          type: ["string", "null"]
+        printerName:
+          type: ["string", "null"]
+        copies:
+          type: integer
+        enabled:
+          type: boolean
+        printOrder:
+          type: integer
+
+    DepartmentPrintConfigInput:
+      type: object
+      properties:
+        categoryId:
+          type: ["integer", "null"]
+        printerName:
+          type: ["string", "null"]
+        copies:
+          type: integer
+        enabled:
+          type: boolean
+        printOrder:
+          type: integer
+
+    PrintLog:
+      type: object
+      required: [id, orderId, invoiceNumber, receiptType, printedAt, userId, copies, status, reprintCount]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        invoiceNumber:
+          type: string
+        receiptType:
+          type: string
+        departmentName:
+          type: ["string", "null"]
+        printerName:
+          type: ["string", "null"]
+        printedAt:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        copies:
+          type: integer
+        status:
+          type: string
+          enum: [success, failed]
+        reprintReason:
+          type: ["string", "null"]
+        reprintCount:
+          type: integer
+
+    PrintLogInput:
+      type: object
+      required: [orderId, invoiceNumber, receiptType]
+      properties:
+        orderId:
+          type: integer
+        invoiceNumber:
+          type: string
+        receiptType:
+          type: string
+        departmentName:
+          type: ["string", "null"]
+        printerName:
+          type: ["string", "null"]
+        copies:
+          type: integer
+        status:
+          type: string
+          enum: [success, failed]
+        reprintReason:
+          type: ["string", "null"]
+        reprintCount:
+          type: integer

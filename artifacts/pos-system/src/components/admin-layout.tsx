@@ -1,7 +1,7 @@
 import { useAuth } from "@/components/auth-provider";
 import { useLogout } from "@workspace/api-client-react";
 import { useLocation, Link } from "wouter";
-import { LogOut, LayoutDashboard, Package, Tags, Receipt, Users, UserCircle, BarChart3, Settings } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Tags, Receipt, Users, UserCircle, BarChart3, Settings, Printer, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -27,6 +27,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     { name: "العملاء", href: "/customers", icon: Users },
     { name: "المستخدمين", href: "/users", icon: UserCircle },
     { name: "التقارير", href: "/reports", icon: BarChart3 },
+    { name: "سجل الطباعة", href: "/print-log", icon: FileText },
     { name: "الإعدادات", href: "/settings", icon: Settings },
   ];
 
@@ -35,7 +36,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col border-l border-sidebar-border">
         <div className="h-16 flex items-center justify-center border-b border-sidebar-border px-4">
-          <h1 className="text-xl font-bold text-sidebar-primary-foreground">إتقان سوفت</h1>
+          <div className="flex items-center gap-2">
+            <Printer className="w-5 h-5 text-sidebar-primary-foreground" />
+            <h1 className="text-xl font-bold text-sidebar-primary-foreground">إتقان سوفت</h1>
+          </div>
         </div>
         
         <div className="flex-1 py-4 overflow-y-auto">

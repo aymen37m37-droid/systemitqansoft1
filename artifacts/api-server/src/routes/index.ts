@@ -9,6 +9,8 @@ import usersRouter from "./users";
 import dashboardRouter from "./dashboard";
 import settingsRouter from "./settings";
 import reportsRouter from "./reports";
+import printConfigRouter from "./print-config";
+import printLogRouter from "./print-log";
 
 const router: IRouter = Router();
 
@@ -22,5 +24,7 @@ router.use(usersRouter);
 router.use(dashboardRouter);
 router.use(settingsRouter);
 router.use(reportsRouter);
+router.use(printConfigRouter);
+router.use(printLogRouter);
 
 export default router;

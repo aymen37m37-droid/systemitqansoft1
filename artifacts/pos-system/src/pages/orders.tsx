@@ -106,9 +106,9 @@ export default function Orders() {
                 </tbody>
               </table>
               <div className="space-y-1 border-t pt-2">
-                <div className="flex justify-between"><span>المجموع الفرعي</span><span>{viewOrder.subtotal.toFixed(2)}</span></div>
-                {viewOrder.discount > 0 && <div className="flex justify-between text-red-500"><span>خصم</span><span>-{viewOrder.discount.toFixed(2)}</span></div>}
-                {viewOrder.tax > 0 && <div className="flex justify-between"><span>ضريبة</span><span>{viewOrder.tax.toFixed(2)}</span></div>}
+                <div className="flex justify-between"><span>المجموع الفرعي</span><span>{(viewOrder.subtotal ?? 0).toFixed(2)}</span></div>
+                {(viewOrder.discount ?? 0) > 0 && <div className="flex justify-between text-red-500"><span>خصم</span><span>-{(viewOrder.discount ?? 0).toFixed(2)}</span></div>}
+                {(viewOrder.tax ?? 0) > 0 && <div className="flex justify-between"><span>ضريبة</span><span>{(viewOrder.tax ?? 0).toFixed(2)}</span></div>}
                 <div className="flex justify-between font-bold text-base border-t pt-1"><span>الإجمالي</span><span className="text-amber-600">{viewOrder.total.toFixed(2)}</span></div>
               </div>
             </div>

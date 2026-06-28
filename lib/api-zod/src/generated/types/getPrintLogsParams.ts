@@ -5,11 +5,9 @@
  * POS System API
  * OpenAPI spec version: 0.1.0
  */
-import type { GetOrdersOrderType } from './getOrdersOrderType';
 
-export type GetOrdersParams = {
+export type GetPrintLogsParams = {
+orderId?: number;
 startDate?: string;
 endDate?: string;
-userId?: number;
-orderType?: GetOrdersOrderType;
 };

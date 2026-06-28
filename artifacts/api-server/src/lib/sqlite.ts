@@ -95,6 +95,8 @@ function initSchema() {
       customer_id INTEGER REFERENCES customers(id),
       user_id INTEGER NOT NULL REFERENCES users(id),
       note TEXT,
+      order_type TEXT NOT NULL DEFAULT 'dine-in',
+      table_number TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -114,7 +116,47 @@ function initSchema() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS receipt_copy_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      copy_number INTEGER NOT NULL,
+      label TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS department_print_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+      printer_name TEXT,
+      copies INTEGER NOT NULL DEFAULT 1,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      print_order INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS print_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id INTEGER NOT NULL,
+      invoice_number TEXT NOT NULL,
+      receipt_type TEXT NOT NULL,
+      department_name TEXT,
+      printer_name TEXT,
+      printed_at TEXT NOT NULL DEFAULT (datetime('now')),
+      user_id INTEGER NOT NULL,
+      user_name TEXT,
+      copies INTEGER NOT NULL DEFAULT 1,
+      status TEXT NOT NULL DEFAULT 'success',
+      reprint_reason TEXT,
+      reprint_count INTEGER NOT NULL DEFAULT 0
+    );
   `);
+}
+
+function runMigrations() {
+  // orders table migrations
+  try { db.exec("ALTER TABLE order_items ADD COLUMN category_id INTEGER REFERENCES categories(id)"); } catch {}
+  try { db.exec("ALTER TABLE order_items ADD COLUMN category_name TEXT"); } catch {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN order_type TEXT NOT NULL DEFAULT 'dine-in'"); } catch {}
+  try { db.exec("ALTER TABLE orders ADD COLUMN table_number TEXT"); } catch {}
 }
 
 function seedData() {
@@ -130,32 +172,34 @@ function seedData() {
     .run("cashier", cashierHash, "الكاشير الأول", "cashier");
 
   const categories = [
-    { name: "وجبات رئيسية", color: "#f59e0b" },
-    { name: "مشروبات", color: "#3b82f6" },
-    { name: "حلويات", color: "#ec4899" },
-    { name: "مقبلات", color: "#10b981" },
+    { name: "المطبخ", color: "#f59e0b" },
+    { name: "العصائر", color: "#3b82f6" },
+    { name: "الحلويات", color: "#ec4899" },
+    { name: "الشاورما", color: "#10b981" },
   ];
   const insertCat = db.prepare("INSERT INTO categories (name, color) VALUES (?,?)");
+  const catIds: number[] = [];
   for (const cat of categories) {
-    insertCat.run(cat.name, cat.color);
+    const r = insertCat.run(cat.name, cat.color);
+    catIds.push(r.lastInsertRowid as number);
   }
 
   const products = [
-    { number: 1, name: "برياني دجاج", price: 14000, cost: 8000, category_id: 1 },
-    { number: 2, name: "رز أبيض", price: 6500, cost: 3000, category_id: 1 },
-    { number: 3, name: "دجاج مشوي", price: 18000, cost: 10000, category_id: 1 },
-    { number: 4, name: "لحم مشوي", price: 25000, cost: 15000, category_id: 1 },
-    { number: 5, name: "سمك مقلي", price: 20000, cost: 12000, category_id: 1 },
-    { number: 6, name: "عصير برتقال", price: 3000, cost: 1000, category_id: 2 },
-    { number: 7, name: "شاي", price: 1500, cost: 500, category_id: 2 },
-    { number: 8, name: "ماء معدني", price: 1000, cost: 300, category_id: 2 },
-    { number: 9, name: "كولا", price: 2000, cost: 800, category_id: 2 },
-    { number: 10, name: "كيك شوكولاتة", price: 5000, cost: 2500, category_id: 3 },
-    { number: 11, name: "آيس كريم", price: 4000, cost: 1500, category_id: 3 },
-    { number: 12, name: "سلطة خضراء", price: 4500, cost: 2000, category_id: 4 },
-    { number: 13, name: "حمص", price: 3500, cost: 1500, category_id: 4 },
-    { number: 14, name: "فتة", price: 8000, cost: 4000, category_id: 1 },
-    { number: 15, name: "مرق لحم", price: 5000, cost: 2000, category_id: 1 },
+    { number: 1, name: "برياني دجاج", price: 14000, cost: 8000, category_id: catIds[0] },
+    { number: 2, name: "رز أبيض", price: 6500, cost: 3000, category_id: catIds[0] },
+    { number: 3, name: "دجاج مشوي", price: 18000, cost: 10000, category_id: catIds[0] },
+    { number: 4, name: "لحم مشوي", price: 25000, cost: 15000, category_id: catIds[0] },
+    { number: 5, name: "سمك مقلي", price: 20000, cost: 12000, category_id: catIds[0] },
+    { number: 6, name: "عصير برتقال", price: 3000, cost: 1000, category_id: catIds[1] },
+    { number: 7, name: "شاي", price: 1500, cost: 500, category_id: catIds[1] },
+    { number: 8, name: "ماء معدني", price: 1000, cost: 300, category_id: catIds[1] },
+    { number: 9, name: "كولا", price: 2000, cost: 800, category_id: catIds[1] },
+    { number: 10, name: "كيك شوكولاتة", price: 5000, cost: 2500, category_id: catIds[2] },
+    { number: 11, name: "آيس كريم", price: 4000, cost: 1500, category_id: catIds[2] },
+    { number: 12, name: "شاورما دجاج", price: 8000, cost: 4000, category_id: catIds[3] },
+    { number: 13, name: "شاورما لحم", price: 10000, cost: 5000, category_id: catIds[3] },
+    { number: 14, name: "فتة", price: 8000, cost: 4000, category_id: catIds[0] },
+    { number: 15, name: "مرق لحم", price: 5000, cost: 2000, category_id: catIds[0] },
   ];
 
   const insertProd = db.prepare(
@@ -165,7 +209,7 @@ function seedData() {
     insertProd.run(p.number, p.name, p.price, p.cost, p.category_id);
   }
 
-  const defaultSettings = [
+  const defaultSettings: [string, string][] = [
     ["businessName", "مطعم إتقان"],
     ["address", "الرياض، المملكة العربية السعودية"],
     ["phone", "0501234567"],
@@ -178,12 +222,42 @@ function seedData() {
     ["showCashier", "true"],
     ["showCustomer", "true"],
     ["receiptPaperSize", "80mm"],
-    ["receiptPrintMode", "single"],
+    ["showOrderNumber", "true"],
+    ["showTableNumber", "true"],
+    ["showDateTime", "true"],
+    ["showBarcode", "false"],
+    ["showOrderType", "true"],
+    ["showTax", "true"],
+    ["showDiscount", "true"],
+    ["showNotes", "true"],
+    ["autoPrintTrigger", "print_button"],
+    ["maxReprintCount", "3"],
+    ["masterCopiesCount", "2"],
   ];
   const insertSetting = db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?,?)");
   for (const [key, value] of defaultSettings) {
     insertSetting.run(key, value);
   }
+
+  // Seed receipt copy configs
+  const copyConfigs = [
+    { copy_number: 1, label: "نسخة العميل" },
+    { copy_number: 2, label: "نسخة الكاشير" },
+    { copy_number: 3, label: "نسخة المحاسبة" },
+    { copy_number: 4, label: "نسخة الأرشيف" },
+  ];
+  const insertCopy = db.prepare("INSERT OR IGNORE INTO receipt_copy_configs (copy_number, label, enabled) VALUES (?,?,?)");
+  for (const c of copyConfigs) {
+    insertCopy.run(c.copy_number, c.label, c.copy_number <= 2 ? 1 : 0);
+  }
+
+  // Seed department print configs
+  const insertDept = db.prepare(
+    "INSERT OR IGNORE INTO department_print_configs (category_id, printer_name, copies, enabled, print_order) VALUES (?,?,?,?,?)"
+  );
+  catIds.forEach((cid, idx) => {
+    insertDept.run(cid, null, 1, 1, idx + 1);
+  });
 
   const now = new Date();
   const adminUser = db.prepare("SELECT id FROM users WHERE username='admin'").get() as { id: number };
@@ -193,8 +267,8 @@ function seedData() {
     VALUES (?,?,?,?,?,?,?,?,?)
   `);
   const insertItem = db.prepare(`
-    INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total)
-    VALUES (?,?,?,?,?,?)
+    INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total, category_id, category_name)
+    VALUES (?,?,?,?,?,?,?,?)
   `);
 
   for (let i = 0; i < 20; i++) {
@@ -206,18 +280,11 @@ function seedData() {
     const invNum = `INV-${String(i + 1).padStart(4, "0")}`;
     const result = insertOrder.run(invNum, subtotal, 0, tax, total, "cash", total, adminUser.id, d.toISOString());
     const orderId = result.lastInsertRowid;
-    insertItem.run(orderId, 1, "برياني دجاج", 4, 14000, 56000);
-    insertItem.run(orderId, 2, "رز أبيض", 5, 6500, 32500);
+    insertItem.run(orderId, 1, "برياني دجاج", 4, 14000, 56000, catIds[0], "المطبخ");
+    insertItem.run(orderId, 2, "رز أبيض", 5, 6500, 32500, catIds[0], "المطبخ");
   }
 }
+
 initSchema();
-
-  try { db.exec("ALTER TABLE order_items ADD COLUMN category_id INTEGER REFERENCES categories(id)"); } catch {}
-
-  try { db.exec("ALTER TABLE order_items ADD COLUMN category_name TEXT"); } catch {}
-
-  try { db.exec("ALTER TABLE settings ADD COLUMN receiptPaperSize TEXT"); } catch {}
-
-  try { db.exec("ALTER TABLE settings ADD COLUMN receiptPrintMode TEXT"); } catch {}
-
-  seedData();
+runMigrations();
+seedData();

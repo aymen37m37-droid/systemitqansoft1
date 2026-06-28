@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { OrderItem } from './orderItem';
+import type { OrderOrderType } from './orderOrderType';
 import type { OrderPaymentMethod } from './orderPaymentMethod';
 
 export interface Order {
@@ -28,6 +29,9 @@ export interface Order {
   userName?: string;
   /** @nullable */
   note?: string | null;
+  orderType?: OrderOrderType;
+  /** @nullable */
+  tableNumber?: string | null;
   createdAt: string;
   items?: OrderItem[];
 }

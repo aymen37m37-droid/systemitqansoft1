@@ -1,15 +1,27 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin-layout";
-import { useGetSettings, useUpdateSettings, getGetSettingsQueryKey } from "@workspace/api-client-react";
-import type { SettingsInput } from "@workspace/api-client-react";
+import {
+  useGetSettings, useUpdateSettings, getGetSettingsQueryKey,
+  useGetReceiptCopyConfigs, useUpdateReceiptCopyConfig, useCreateReceiptCopyConfig, useDeleteReceiptCopyConfig, getGetReceiptCopyConfigsQueryKey,
+  useGetDepartmentPrintConfigs, useUpdateDepartmentPrintConfig, useCreateDepartmentPrintConfig, useDeleteDepartmentPrintConfig, getGetDepartmentPrintConfigsQueryKey,
+  useGetCategories,
+} from "@workspace/api-client-react";
+import type { SettingsInput, ReceiptCopyConfig, DepartmentPrintConfig } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Save } from "lucide-react";
+import { Save, Plus, Trash2, Pencil, Printer, Copy, Building2, Settings2 } from "lucide-react";
 
+// ─────────────────────────────────────────────
+// Main Settings Component
+// ─────────────────────────────────────────────
 export default function Settings() {
   const { data: settings, isLoading } = useGetSettings();
   const updateMutation = useUpdateSettings();
@@ -28,27 +40,46 @@ export default function Settings() {
     printQr: false,
     showCashier: true,
     showCustomer: true,
+    receiptPaperSize: "80mm",
+    showOrderNumber: true,
+    showTableNumber: true,
+    showDateTime: true,
+    showBarcode: false,
+    showOrderType: true,
+    showTax: true,
+    showDiscount: true,
+    showNotes: true,
+    autoPrintTrigger: "print_button",
+    maxReprintCount: 3,
+    masterCopiesCount: 2,
   });
 
   useEffect(() => {
-    if (settings) setForm({ ...settings });
+    if (settings) setForm({ ...form, ...settings });
   }, [settings]);
 
   const handleSave = () => {
     updateMutation.mutate({ data: form }, {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getGetSettingsQueryKey() });
-        toast({ title: "تم حفظ الإعدادات" });
+        toast({ title: "تم حفظ الإعدادات بنجاح" });
       },
       onError: () => toast({ variant: "destructive", title: "فشل في الحفظ" })
     });
   };
 
-  if (isLoading) return <AdminLayout><div className="text-center py-16 text-muted-foreground">جاري التحميل...</div></AdminLayout>;
+  const setField = (field: keyof SettingsInput, value: any) =>
+    setForm(f => ({ ...f, [field]: value }));
+
+  if (isLoading) return (
+    <AdminLayout>
+      <div className="text-center py-16 text-muted-foreground">جاري التحميل...</div>
+    </AdminLayout>
+  );
 
   return (
     <AdminLayout>
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-4 max-w-4xl">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">إعدادات النظام</h1>
           <Button onClick={handleSave} disabled={updateMutation.isPending} className="gap-2">
@@ -57,76 +88,583 @@ export default function Settings() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader><CardTitle>معلومات النشاط التجاري</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {([
-              ["businessName", "اسم النشاط *", true],
-              ["address", "العنوان", false],
-              ["phone", "رقم الهاتف", false],
-              ["taxNumber", "الرقم الضريبي", false],
-              ["currency", "العملة", false],
-            ] as [keyof SettingsInput, string, boolean][]).map(([field, label]) => (
-              <div key={field} className="space-y-1">
-                <label className="text-sm font-medium">{label}</label>
-                <Input
-                  value={(form[field] as string) ?? ""}
-                  onChange={e => setForm({ ...form, [field]: e.target.value || null })}
-                />
-              </div>
-            ))}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">نسبة الضريبة (%)</label>
-              <Input
-                type="number"
-                value={form.taxRate ?? 15}
-                onChange={e => setForm({ ...form, taxRate: Number(e.target.value) })}
-                className="w-32"
-                min={0}
-                max={100}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="business">
+          <TabsList className="w-full grid grid-cols-4 h-auto">
+            <TabsTrigger value="business" className="gap-2 py-2 text-xs sm:text-sm">
+              <Settings2 className="w-4 h-4" />
+              النشاط التجاري
+            </TabsTrigger>
+            <TabsTrigger value="receipt-format" className="gap-2 py-2 text-xs sm:text-sm">
+              <Printer className="w-4 h-4" />
+              شكل الفاتورة
+            </TabsTrigger>
+            <TabsTrigger value="master-copies" className="gap-2 py-2 text-xs sm:text-sm">
+              <Copy className="w-4 h-4" />
+              نسخ الفاتورة
+            </TabsTrigger>
+            <TabsTrigger value="departments" className="gap-2 py-2 text-xs sm:text-sm">
+              <Building2 className="w-4 h-4" />
+              الأقسام
+            </TabsTrigger>
+          </TabsList>
 
-        <Card>
-          <CardHeader><CardTitle>إعدادات الفاتورة</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium">رسالة الشكر في نهاية الفاتورة</label>
-              <Input
-                value={form.receiptMessage ?? ""}
-                onChange={e => setForm({ ...form, receiptMessage: e.target.value || null })}
-                placeholder="شكراً لزيارتكم..."
-              />
-            </div>
-            {([
-              ["printLogo", "طباعة الشعار"],
-              ["printQr", "طباعة QR Code"],
-              ["showCashier", "إظهار اسم الكاشير"],
-              ["showCustomer", "إظهار اسم العميل"],
-            ] as [keyof SettingsInput, string][]).map(([field, label]) => (
-              <div key={field} className="flex items-center justify-between py-1">
-                <label className="text-sm font-medium">{label}</label>
-                <Switch
-                  checked={Boolean(form[field])}
-                  onCheckedChange={v => setForm({ ...form, [field]: v })}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          {/* ─── Business Tab ─── */}
+          <TabsContent value="business" className="space-y-4 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>معلومات النشاط التجاري</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {([
+                  ["businessName", "اسم النشاط *"],
+                  ["address", "العنوان"],
+                  ["phone", "رقم الهاتف"],
+                  ["taxNumber", "الرقم الضريبي"],
+                  ["currency", "العملة"],
+                ] as [keyof SettingsInput, string][]).map(([field, label]) => (
+                  <div key={field} className="space-y-1">
+                    <label className="text-sm font-medium">{label}</label>
+                    <Input
+                      value={(form[field] as string) ?? ""}
+                      onChange={e => setField(field, e.target.value || null)}
+                    />
+                  </div>
+                ))}
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">نسبة الضريبة (%)</label>
+                  <Input
+                    type="number"
+                    value={form.taxRate ?? 15}
+                    onChange={e => setField("taxRate", Number(e.target.value))}
+                    className="w-32"
+                    min={0}
+                    max={100}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader><CardTitle>معلومات الدخول الافتراضية</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 font-mono">
-              <p>مدير النظام: <span className="font-bold text-foreground">admin</span> / كلمة المرور: <span className="font-bold text-foreground">admin123</span></p>
-              <p>الكاشير: <span className="font-bold text-foreground">cashier</span> / كلمة المرور: <span className="font-bold text-foreground">cashier123</span></p>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>معلومات الدخول الافتراضية</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 font-mono">
+                  <p>مدير النظام: <span className="font-bold text-foreground">admin</span> / كلمة المرور: <span className="font-bold text-foreground">admin123</span></p>
+                  <p>الكاشير: <span className="font-bold text-foreground">cashier</span> / كلمة المرور: <span className="font-bold text-foreground">cashier123</span></p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ─── Receipt Format Tab ─── */}
+          <TabsContent value="receipt-format" className="space-y-4 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>شكل الفاتورة الرئيسية</CardTitle>
+                <CardDescription>تحكم في البيانات التي تظهر على الفاتورة</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">رسالة الشكر في نهاية الفاتورة</label>
+                  <Input
+                    value={form.receiptMessage ?? ""}
+                    onChange={e => setField("receiptMessage", e.target.value || null)}
+                    placeholder="شكراً لزيارتكم..."
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">حجم الورق</label>
+                  <Select
+                    value={form.receiptPaperSize as string ?? "80mm"}
+                    onValueChange={v => setField("receiptPaperSize", v)}
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="58mm">58mm</SelectItem>
+                      <SelectItem value="80mm">80mm</SelectItem>
+                      <SelectItem value="A4">A4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-2">
+                  {([
+                    ["printLogo", "إظهار شعار المطعم"],
+                    ["printQr", "إظهار QR Code"],
+                    ["showCashier", "إظهار اسم الكاشير"],
+                    ["showCustomer", "إظهار اسم العميل"],
+                    ["showOrderNumber", "إظهار رقم الطلب"],
+                    ["showTableNumber", "إظهار رقم الطاولة"],
+                    ["showDateTime", "إظهار التاريخ والوقت"],
+                    ["showBarcode", "إظهار الباركود"],
+                    ["showOrderType", "إظهار نوع الطلب (محلي/سفري/توصيل)"],
+                    ["showTax", "إظهار الضريبة"],
+                    ["showDiscount", "إظهار الخصم"],
+                    ["showNotes", "إظهار الملاحظات"],
+                  ] as [keyof SettingsInput, string][]).map(([field, label]) => (
+                    <div key={field} className="flex items-center justify-between py-1.5 border-b border-border/50">
+                      <label className="text-sm">{label}</label>
+                      <Switch
+                        checked={Boolean(form[field])}
+                        onCheckedChange={v => setField(field, v)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>إعدادات الطباعة التلقائية</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">وقت تنفيذ الطباعة التلقائية</label>
+                  <Select
+                    value={form.autoPrintTrigger as string ?? "print_button"}
+                    onValueChange={v => setField("autoPrintTrigger", v)}
+                  >
+                    <SelectTrigger className="w-64">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="print_button">عند الضغط على زر الطباعة</SelectItem>
+                      <SelectItem value="save">عند حفظ الطلب</SelectItem>
+                      <SelectItem value="after_payment">بعد الدفع مباشرة</SelectItem>
+                      <SelectItem value="manual">يدوي فقط</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">الحد الأقصى لإعادة الطباعة</label>
+                  <Input
+                    type="number"
+                    value={form.maxReprintCount ?? 3}
+                    onChange={e => setField("maxReprintCount", Number(e.target.value))}
+                    className="w-32"
+                    min={0}
+                    max={20}
+                  />
+                  <p className="text-xs text-muted-foreground">0 = بدون حد</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ─── Master Copies Tab ─── */}
+          <TabsContent value="master-copies" className="mt-4">
+            <MasterCopiesTab
+              masterCopiesCount={form.masterCopiesCount as number ?? 2}
+              onCopiesCountChange={v => setField("masterCopiesCount", v)}
+              onSave={handleSave}
+              isSaving={updateMutation.isPending}
+            />
+          </TabsContent>
+
+          {/* ─── Departments Tab ─── */}
+          <TabsContent value="departments" className="mt-4">
+            <DepartmentsTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Master Copies Tab
+// ─────────────────────────────────────────────
+function MasterCopiesTab({
+  masterCopiesCount,
+  onCopiesCountChange,
+  onSave,
+  isSaving,
+}: {
+  masterCopiesCount: number;
+  onCopiesCountChange: (v: number) => void;
+  onSave: () => void;
+  isSaving: boolean;
+}) {
+  const { data: copies = [], isLoading } = useGetReceiptCopyConfigs();
+  const updateCopy = useUpdateReceiptCopyConfig();
+  const createCopy = useCreateReceiptCopyConfig();
+  const deleteCopy = useDeleteReceiptCopyConfig();
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  const [editItem, setEditItem] = useState<ReceiptCopyConfig | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newEnabled, setNewEnabled] = useState(true);
+
+  const handleToggle = (item: ReceiptCopyConfig) => {
+    updateCopy.mutate({ id: item.id, data: { copyNumber: item.copyNumber, label: item.label, enabled: !item.enabled } }, {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetReceiptCopyConfigsQueryKey() }),
+    });
+  };
+
+  const handleEditSave = () => {
+    if (!editItem) return;
+    updateCopy.mutate({ id: editItem.id, data: { copyNumber: editItem.copyNumber, label: editLabel, enabled: editItem.enabled } }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetReceiptCopyConfigsQueryKey() });
+        setEditItem(null);
+        toast({ title: "تم التعديل" });
+      },
+    });
+  };
+
+  const handleAdd = () => {
+    if (!newLabel.trim()) return;
+    const nextNum = copies.length > 0 ? Math.max(...copies.map(c => c.copyNumber)) + 1 : 1;
+    createCopy.mutate({ data: { copyNumber: nextNum, label: newLabel.trim(), enabled: newEnabled } }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetReceiptCopyConfigsQueryKey() });
+        setShowAdd(false);
+        setNewLabel("");
+        setNewEnabled(true);
+        toast({ title: "تمت الإضافة" });
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteCopy.mutate({ id }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetReceiptCopyConfigsQueryKey() });
+        toast({ title: "تم الحذف" });
+      },
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>عدد نسخ الفاتورة الرئيسية</CardTitle>
+          <CardDescription>تحديد عدد النسخ الإجمالي للفاتورة الرئيسية التي تُطبع عند كل طلب</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">عدد النسخ</label>
+              <Input
+                type="number"
+                value={masterCopiesCount}
+                onChange={e => onCopiesCountChange(Number(e.target.value))}
+                className="w-24 text-center text-lg font-bold"
+                min={1}
+                max={10}
+              />
+            </div>
+            <Button onClick={onSave} disabled={isSaving} variant="outline" className="mt-6 gap-2">
+              <Save className="w-4 h-4" />
+              حفظ
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>تخصيص كل نسخة</CardTitle>
+            <CardDescription>تحديد الغرض من كل نسخة (عميل، كاشير، محاسبة، أرشيف...)</CardDescription>
+          </div>
+          <Button size="sm" onClick={() => setShowAdd(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            إضافة نسخة
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">جاري التحميل...</div>
+          ) : (
+            <div className="space-y-2">
+              {copies.map(copy => (
+                <div key={copy.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                    {copy.copyNumber}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{copy.label}</p>
+                    <p className="text-xs text-muted-foreground">نسخة رقم {copy.copyNumber}</p>
+                  </div>
+                  <Badge variant={copy.enabled ? "default" : "secondary"}>
+                    {copy.enabled ? "مفعّل" : "معطّل"}
+                  </Badge>
+                  <Switch checked={copy.enabled} onCheckedChange={() => handleToggle(copy)} />
+                  <Button variant="ghost" size="sm" onClick={() => { setEditItem(copy); setEditLabel(copy.label); }}>
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(copy.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+              {copies.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm">لا توجد نسخ مضافة</div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editItem} onOpenChange={o => !o && setEditItem(null)}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader><DialogTitle>تعديل النسخة</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">اسم النسخة / الغرض</label>
+              <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditItem(null)}>إلغاء</Button>
+            <Button onClick={handleEditSave} disabled={updateCopy.isPending}>حفظ</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Dialog */}
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader><DialogTitle>إضافة نسخة جديدة</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">اسم النسخة / الغرض</label>
+              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="مثال: نسخة المحاسبة" />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">مفعّل</label>
+              <Switch checked={newEnabled} onCheckedChange={setNewEnabled} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAdd(false)}>إلغاء</Button>
+            <Button onClick={handleAdd} disabled={createCopy.isPending || !newLabel.trim()}>إضافة</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Departments Tab
+// ─────────────────────────────────────────────
+function DepartmentsTab() {
+  const { data: depts = [], isLoading } = useGetDepartmentPrintConfigs();
+  const { data: categories = [] } = useGetCategories();
+  const updateDept = useUpdateDepartmentPrintConfig();
+  const createDept = useCreateDepartmentPrintConfig();
+  const deleteDept = useDeleteDepartmentPrintConfig();
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  const [editItem, setEditItem] = useState<DepartmentPrintConfig | null>(null);
+  const [editForm, setEditForm] = useState({ categoryId: "", printerName: "", copies: 1, enabled: true, printOrder: 0 });
+  const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState({ categoryId: "", printerName: "", copies: 1, enabled: true, printOrder: 0 });
+
+  const openEdit = (item: DepartmentPrintConfig) => {
+    setEditItem(item);
+    setEditForm({
+      categoryId: item.categoryId ? String(item.categoryId) : "",
+      printerName: item.printerName ?? "",
+      copies: item.copies,
+      enabled: item.enabled,
+      printOrder: item.printOrder,
+    });
+  };
+
+  const handleEditSave = () => {
+    if (!editItem) return;
+    updateDept.mutate({
+      id: editItem.id,
+      data: {
+        categoryId: editForm.categoryId ? Number(editForm.categoryId) : null,
+        printerName: editForm.printerName || null,
+        copies: editForm.copies,
+        enabled: editForm.enabled,
+        printOrder: editForm.printOrder,
+      }
+    }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetDepartmentPrintConfigsQueryKey() });
+        setEditItem(null);
+        toast({ title: "تم التعديل" });
+      },
+    });
+  };
+
+  const handleAdd = () => {
+    createDept.mutate({
+      data: {
+        categoryId: addForm.categoryId ? Number(addForm.categoryId) : null,
+        printerName: addForm.printerName || null,
+        copies: addForm.copies,
+        enabled: addForm.enabled,
+        printOrder: addForm.printOrder,
+      }
+    }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetDepartmentPrintConfigsQueryKey() });
+        setShowAdd(false);
+        setAddForm({ categoryId: "", printerName: "", copies: 1, enabled: true, printOrder: 0 });
+        toast({ title: "تمت الإضافة" });
+      },
+    });
+  };
+
+  const handleToggle = (item: DepartmentPrintConfig) => {
+    updateDept.mutate({
+      id: item.id,
+      data: {
+        categoryId: item.categoryId ?? null,
+        printerName: item.printerName ?? null,
+        copies: item.copies,
+        enabled: !item.enabled,
+        printOrder: item.printOrder,
+      }
+    }, {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetDepartmentPrintConfigsQueryKey() }),
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteDept.mutate({ id }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetDepartmentPrintConfigsQueryKey() });
+        toast({ title: "تم الحذف" });
+      },
+    });
+  };
+
+  const DeptForm = ({ form, onChange }: { form: typeof addForm, onChange: (f: typeof addForm) => void }) => (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <label className="text-sm font-medium">القسم (التصنيف)</label>
+        <Select value={form.categoryId} onValueChange={v => onChange({ ...form, categoryId: v })}>
+          <SelectTrigger>
+            <SelectValue placeholder="اختر قسماً" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map(c => (
+              <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">اسم الطابعة</label>
+        <Input value={form.printerName} onChange={e => onChange({ ...form, printerName: e.target.value })} placeholder="مثال: Kitchen Printer" dir="ltr" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">عدد النسخ</label>
+          <Input type="number" value={form.copies} onChange={e => onChange({ ...form, copies: Number(e.target.value) })} min={1} max={10} />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">ترتيب الطباعة</label>
+          <Input type="number" value={form.printOrder} onChange={e => onChange({ ...form, printOrder: Number(e.target.value) })} min={0} />
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">تفعيل الطباعة</label>
+        <Switch checked={form.enabled} onCheckedChange={v => onChange({ ...form, enabled: v })} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>فواتير الأقسام</CardTitle>
+            <CardDescription>
+              بعد طباعة الفاتورة الرئيسية، يُرسل النظام تلقائياً فاتورة مستقلة لكل قسم تحتوي فقط على الأصناف الخاصة به
+            </CardDescription>
+          </div>
+          <Button size="sm" onClick={() => setShowAdd(true)} className="gap-2 shrink-0">
+            <Plus className="w-4 h-4" />
+            إضافة قسم
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">جاري التحميل...</div>
+          ) : (
+            <div className="space-y-2">
+              {depts.map(dept => (
+                <div key={dept.id} className={`flex items-center gap-3 p-3 rounded-lg border bg-card transition-opacity ${!dept.enabled ? "opacity-50" : ""}`}>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                    {dept.printOrder}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{dept.categoryName ?? "قسم غير محدد"}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">
+                        {dept.printerName ? `🖨️ ${dept.printerName}` : "بدون طابعة محددة"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs text-muted-foreground">{dept.copies} نسخة</span>
+                    </div>
+                  </div>
+                  <Badge variant={dept.enabled ? "default" : "secondary"}>
+                    {dept.enabled ? "مفعّل" : "معطّل"}
+                  </Badge>
+                  <Switch checked={dept.enabled} onCheckedChange={() => handleToggle(dept)} />
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(dept)}>
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(dept.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+              {depts.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  لا توجد أقسام مضافة. أضف قسماً لتفعيل طباعة فواتير الأقسام.
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editItem} onOpenChange={o => !o && setEditItem(null)}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader><DialogTitle>تعديل إعدادات القسم</DialogTitle></DialogHeader>
+          <DeptForm form={editForm} onChange={setEditForm} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditItem(null)}>إلغاء</Button>
+            <Button onClick={handleEditSave} disabled={updateDept.isPending}>حفظ</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Dialog */}
+      <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <DialogContent dir="rtl" className="max-w-sm">
+          <DialogHeader><DialogTitle>إضافة قسم جديد</DialogTitle></DialogHeader>
+          <DeptForm form={addForm} onChange={setAddForm} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAdd(false)}>إلغاء</Button>
+            <Button onClick={handleAdd} disabled={createDept.isPending}>إضافة</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
