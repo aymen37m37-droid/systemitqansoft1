@@ -1,2 +1,0 @@
-- [POS SQLite backend](pos-sqlite-backend.md) — Uses better-sqlite3 directly (NOT @workspace/db/Drizzle); db auto-created at artifacts/api-server/data/pos.db
-- [POS auth pattern](pos-auth-pattern.md) — In-memory sessions Map, scrypt password hashing, token via localStorage "pos_token", setAuthTokenGetter from @workspace/api-client-react
